@@ -33,6 +33,13 @@ const expandedQuestions = new Set();
 const qRef = collection(db, "questions");
 const qQuery = query(qRef, orderBy("timestamp", "desc"));
 
+questionInput.addEventListener("keydown", async (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    postQuestionBtn.click();
+  }
+});
+
 postQuestionBtn.addEventListener("click", async () => {
   const text = questionInput.value.trim();
   if (!text) return;
@@ -90,6 +97,13 @@ function updateQuestionDOM(qSnap) {
       await updateDoc(qDocRef, {
         replies: arrayUnion({ text: replyText, uid: Date.now() + Math.random() })
       });
+    });
+
+    replyInput.addEventListener("keydown", async (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        replyBtn.click();
+      }
     });
 
     replyInput.addEventListener("click", e => e.stopPropagation());
