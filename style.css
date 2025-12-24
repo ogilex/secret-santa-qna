@@ -1,0 +1,96 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #fafafa;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+h1 {
+  text-align: center;
+  color: #222;
+}
+
+.ask-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+textarea {
+  resize: vertical;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+button {
+  align-self: flex-end;
+  padding: 8px 16px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #0078d7;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background-color: #005fa3;
+}
+
+.question {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.question:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.replies {
+  margin-top: 10px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+.reply {
+  background: #f5f5f5;
+  border-radius: 6px;
+  padding: 8px;
+  margin: 5px 0;
+  font-size: 0.95rem;
+}
+
+.reply-input {
+  display: flex;
+  margin-top: 10px;
+  gap: 6px;
+}
+
+.reply-input textarea {
+  flex: 1;
+  border-radius: 6px;
+}
+
+.reply-input button {
+  background-color: #28a745;
+}
+
+.reply-input button:hover {
+  background-color: #218838;
+}
