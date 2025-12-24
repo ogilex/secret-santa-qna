@@ -28,14 +28,16 @@ const questionInput = document.getElementById("questionInput");
 const postQuestionBtn = document.getElementById("postQuestion");
 const questionsList = document.getElementById("questionsList");
 
+const expandedQuestions = new Set();
+
 const qRef = collection(db, "questions");
 const qQuery = query(qRef, orderBy("timestamp", "desc"));
-
-const expandedQuestions = new Set();
 
 postQuestionBtn.addEventListener("click", async () => {
   const text = questionInput.value.trim();
   if (!text) return;
+
+  questionInput.value = "";
 
   await addDoc(qRef, {
     text,
@@ -43,91 +45,91 @@ postQuestionBtn.addEventListener("click", async () => {
     uid: Date.now() + Math.random(),
     replies: []
   });
-  questionInput.value = "";
 });
 
-onSnapshot(qQuery, (snapshot) => {
-  questionsList.innerHTML = "";
+function updateQuestionDOM(qSnap) {
+  const qData = qSnap.data();
+  const qId = qSnap.id;
 
-  snapshot.forEach((docSnap) => {
-    const qData = docSnap.data();
-    const qId = docSnap.id;
-
-    const qEl = document.createElement("div");
+  let qEl = document.getElementById(`question-${qId}`);
+  if (!qEl) {
+    qEl = document.createElement("div");
     qEl.className = "question";
     qEl.id = `question-${qId}`;
-    qEl.textContent = qData.text;
 
-    const repliesEl = document.createElement("div");
-    repliesEl.className = "replies";
+    const qTextEl = document.createElement("div");
+    qTextEl.className = "question-text";
+    qTextEl.textContent = qData.text;
+    qEl.appendChild(qTextEl);
 
-    if (expandedQuestions.has(qId)) {
-      repliesEl.style.display = "block";
-      qEl.style.cursor = "default";
-    } else {
-      repliesEl.style.display = "none";
-      qEl.style.cursor = "pointer";
-    }
+    const repliesList = document.createElement("div");
+    repliesList.className = "replies-list";
+    qEl.appendChild(repliesList);
 
-    renderReplies(qData, qId, repliesEl, db);
+    const replyBox = document.createElement("div");
+    replyBox.className = "reply-input";
+    const replyInput = document.createElement("textarea");
+    replyInput.rows = 1;
+    replyInput.placeholder = "Write an anonymous reply...";
+    const replyBtn = document.createElement("button");
+    replyBtn.textContent = "Send";
 
-    qEl.addEventListener("click", () => {
-      if (repliesEl.style.display === "none") {
-        repliesEl.style.display = "block";
-        qEl.style.cursor = "default";
+    replyBtn.addEventListener("click", async e => {
+      e.stopPropagation();
+      const replyText = replyInput.value.trim();
+      if (!replyText) return;
+
+      const rEl = document.createElement("div");
+      rEl.className = "reply";
+      rEl.textContent = replyText;
+      repliesList.appendChild(rEl);
+
+      replyInput.value = "";
+
+      const qDocRef = doc(db, "questions", qId);
+      await updateDoc(qDocRef, {
+        replies: arrayUnion({ text: replyText, uid: Date.now() + Math.random() })
+      });
+    });
+
+    replyInput.addEventListener("click", e => e.stopPropagation());
+
+    replyBox.append(replyInput, replyBtn);
+    qEl.appendChild(replyBox);
+
+    qTextEl.addEventListener("click", () => {
+      if (repliesList.style.display === "none") {
+        repliesList.style.display = "block";
         expandedQuestions.add(qId);
       } else {
-        repliesEl.style.display = "none";
-        qEl.style.cursor = "pointer";
+        repliesList.style.display = "none";
         expandedQuestions.delete(qId);
       }
     });
 
-    qEl.appendChild(repliesEl);
+    questionsList.prepend(qEl);
+  }
 
-    questionsList.appendChild(qEl);
-  });
-});
-
-function renderReplies(qData, qId, repliesEl, db) {
-  repliesEl.innerHTML = "";
-
+  const repliesList = qEl.querySelector(".replies-list");
+  repliesList.innerHTML = "";
   if (qData.replies && qData.replies.length > 0) {
     qData.replies.forEach(r => {
       const rEl = document.createElement("div");
       rEl.className = "reply";
       rEl.textContent = r.text;
-      rEl.addEventListener("click", (event) => event.stopPropagation());
-      repliesEl.appendChild(rEl);
+      rEl.addEventListener("click", e => e.stopPropagation());
+      repliesList.appendChild(rEl);
     });
   }
 
-  const replyBox = document.createElement("div");
-  replyBox.className = "reply-input";
-
-  const replyInput = document.createElement("textarea");
-  replyInput.rows = 1;
-  replyInput.placeholder = "Write an anonymous reply...";
-
-  const replyBtn = document.createElement("button");
-  replyBtn.textContent = "Send";
-
-  replyBtn.addEventListener("click", async (event) => {
-    event.stopPropagation();
-    const replyText = replyInput.value.trim();
-    if (!replyText) return;
-    const qDocRef = doc(db, "questions", qId);
-    await updateDoc(qDocRef, {
-      replies: arrayUnion({ 
-        text: replyText, 
-        uid: Date.now() + Math.random() 
-      })
-    });
-    replyInput.value = "";
-  });
-
-  replyInput.addEventListener("click", (event) => event.stopPropagation());
-
-  replyBox.append(replyInput, replyBtn);
-  repliesEl.appendChild(replyBox);
+  if (expandedQuestions.has(qId)) {
+    repliesList.style.display = "block";
+  } else {
+    repliesList.style.display = "none";
+  }
 }
+
+onSnapshot(qQuery, snapshot => {
+  const docs = snapshot.docs.slice().reverse();
+  docs.forEach(docSnap => updateQuestionDOM(docSnap));
+});
