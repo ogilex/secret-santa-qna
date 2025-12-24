@@ -64,11 +64,22 @@ function updateQuestionDOM(qSnap) {
     qEl.className = "question";
     qEl.id = `question-${qId}`;
 
+    // Question text
     const qTextEl = document.createElement("div");
     qTextEl.className = "question-text";
     qTextEl.textContent = qData.text;
+
+    // Reply Count
+    const replyCountEl = document.createElement("span");
+    replyCountEl.className = "reply-count";
+    replyCountEl.style.marginLeft = "10px";
+    replyCountEl.style.fontSize = "0.85em";
+    replyCountEl.style.color = "#555";
+    qTextEl.appendChild(replyCountEl);
+
     qEl.appendChild(qTextEl);
 
+    // Replies container
     const repliesList = document.createElement("div");
     repliesList.className = "replies-list";
     qEl.appendChild(repliesList);
@@ -135,6 +146,11 @@ function updateQuestionDOM(qSnap) {
       repliesList.appendChild(rEl);
     });
   }
+
+  // Update reply count
+  const replyCountEl = qEl.querySelector(".reply-count");
+  const replyCount = qData.replies ? qData.replies.length : 0;
+  replyCountEl.textContent = `(${replyCount} ${replyCount === 1 ? "reply" : "replies"})`;
 
   if (expandedQuestions.has(qId)) {
     repliesList.style.display = "block";
